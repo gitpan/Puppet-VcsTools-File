@@ -13,6 +13,9 @@ use MLDBM qw(DB_File);
 
 use strict ;
 
+use vars qw($VERSION);
+$VERSION = sprintf "%d.%03d", q$Revision: 1.1 $ =~ /(\d+)\.(\d+)/;
+
 my @allNames=() ;
 
 GetOptions ('name=s@' => \@allNames)
@@ -131,14 +134,7 @@ rcsWork - RCS file manager
 
 =head1 SYNOPSIS
 
- # fully qualified
- rcsWork -base SLEE [-rcsDir code/toto] -host hptnofs -name titi.c -name foo.h
-  
- # or
- rcsWork -base SLEE [-rcsDir code/toto] -host hptnofs titi.c foo.h bar.c
-
- # if you trust your .fmrc file
- rcsWork titi.c foo.h bar.c
+ rcsWork  -name titi.c -name foo.h
 
 =head1 DESCRIPTION
 

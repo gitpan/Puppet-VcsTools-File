@@ -9,7 +9,7 @@ use vars qw($VERSION);
 
 use AutoLoader qw/AUTOLOAD/ ;
 
-$VERSION = sprintf "%d.%03d", q$Revision: 1.1 $ =~ /(\d+)\.(\d+)/;
+$VERSION = sprintf "%d.%03d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
 
 
 ## Generic part
@@ -131,7 +131,7 @@ log a each version of a file, if you want to modify it.
 
 =head1 CAVEATS
 
-The file B<must> contain the C<$Revision: 1.1 $> VCS keyword.
+The file B<must> contain the C<$Revision: 1.2 $> VCS keyword.
 
 =head1 WIDGET USAGE
 
@@ -224,39 +224,13 @@ An 'edit log' entry is added to the popup menu of the nodes and arrows.
 
 Will create a new File object.
 
-Parameters are those of L<VcsTools::File/"new(...)"> plus :
+Parameters are those of L<VcsTools::File/"new(...)">. plus :
 
 =over 4
 
 =item *
 
-dataScanner : VcsTools::DataSpec::HpTnd (or equivalent) object reference.
-
-=item *
-
-vcsClass : class name of the VCS interface.
-
-=item *
-
-processClass : class name of the VCS interface.
-
-=item *
-
-workDir : Absolute directory where the file is.
-
-=back
-
-One of the following 2 parameters must be passed to the constructor:
-
-=over 4
-
-=item *
-
-fileAgentClass: class name of the file interface.
-
-=item *
-
-fileAgentClass: object reference of the file interface.
+topTk : Tk top window reference.
 
 =back
 
@@ -290,7 +264,7 @@ open its display.
 
 =head1 Handling the real file
 
-See L<VcsTools::File/"createFileAgent()">,
+See L<VcsTools::File/"createLocalAgent()">,
 L<VcsTools::File/"edit()">, L<VcsTools::File/"getRevision()">, 
 L<VcsTools::File/"checkWritable()">, L<VcsTools::File/"chmodFile(...)">,
 L<VcsTools::File/"writeFile(...)">
@@ -425,7 +399,7 @@ sub display
 
     require Tk::Checkbutton;
     $f -> Label (text => "File: $self->{name} ") ->  pack(qw/side left/) ;   
-    $f -> Label (textvariable => \$self->{status}{file})->pack(qw/side left/) ;
+    $f -> Label (textvariable => \$self->{status}{source})->pack(qw/side left/) ;
     $f -> Label (text => " ") ->  pack(qw/side left/) ;   
     $f -> Label (textvariable => \$self->{status}{archive})
       ->pack(qw/side left/);
@@ -434,12 +408,12 @@ sub display
       $f -> Checkbutton
         (
          text => 'locked', 
-         variable => \$self->{fileMode}{locked},
+         variable => \$self->{myMode}{locked},
          state => 'disabled',
          command => sub
          {
-           my $r = $self->changeLock( lock => $self->{fileMode}{locked});
-           $self->{fileMode}{locked} = 1-  $self->{fileMode}{locked} unless 
+           my $r = $self->changeLock( lock => $self->{myMode}{locked});
+           $self->{myMode}{locked} = 1-  $self->{myMode}{locked} unless 
              defined $r ;
          }
         )
@@ -449,18 +423,18 @@ sub display
       $f -> Checkbutton
         (
          text => 'writable', 
-         variable => \$self->{fileMode}{writable},
+         variable => \$self->{myMode}{writable},
          state => 'disabled',
          command => sub
          {
-           my $r = $self->chmodFile(writable => $self->{fileMode}{writable});
-           $self->{fileMode}{writable} = 1-$self->{fileMode}{writable} unless 
+           my $r = $self->chmodFile(writable => $self->{myMode}{writable});
+           $self->{myMode}{writable} = 1-$self->{myMode}{writable} unless 
              defined $r ;
          }
         )
         -> pack(qw/side right/) ;      
 
-    $f -> Label (textvariable => \$self->{fileMode}{'revision'}) 
+    $f -> Label (textvariable => \$self->{myMode}{'revision'}) 
       ->  pack(qw/side right/) ;   
     $f -> Label (text => ' revision: ') ->  pack(qw/side right/) ;   
     #added by Bob
@@ -480,7 +454,7 @@ sub archiveFile
     my %args = @_ ;
 
     my $infoRef = $args{info} || {};
-    my $version = $args{revision} || $self->{fileMode}{revision} ;
+    my $version = $args{revision} || $self->{myMode}{revision} ;
     my $auto = defined $args{auto} ? $args{auto} : 0 ;
 
     my $newRev = $self->prepareArchive(@_);
@@ -783,7 +757,7 @@ sub updateButtonCfg
     my $self = shift ;
     return unless defined $self->{tk};
 
-    my ($wr,$exist,$locked) = @{$self->{fileMode}}{qw/writable exists locked/};
+    my ($wr,$exist,$locked) = @{$self->{myMode}}{qw/writable exists locked/};
     
     my $arch = $self->{archive}{exists};
 
@@ -981,10 +955,10 @@ sub merge
        state => 'disabled',
        command => sub 
        { 
-         $self->createFileAgent unless defined $self->{fileAgent} ;
-         my $res = $self->{fileAgent}->merge (%{$self->{mergeFiles}}) ;
+         $self->createLocalAgent unless defined $self->{localAgent} ;
+         my $res = $self->{localAgent}->merge (%{$self->{mergeFiles}}) ;
          if ($res) {$archiveB->configure(state => 'normal') ;}
-         else {die "Ediff failed : ",$self->{fileAgent}->error(),"\n";}
+         else {die "Ediff failed : ",$self->{localAgent}->error(),"\n";}
        }
       ) -> pack (side => 'right');
 

@@ -1,7 +1,10 @@
-csTools is a set of object which enable you to perform a lot of functions
-to a Vcs file :
+The Puppet-VcsTools-File package provides a GUI interface to the 
+VcsTools-File package. With both these packages you will be able to 
+manage HMS or RCS file with a graphical user interface and perform the
+following function:
 
 - check-in, check-out of files
+- lock and unlock
 - display a graph showing the revision tree (with bindings 
   to easily get diff between revision or the log of each revision)
 - edit the history information through a dedicated window and archive it 
@@ -11,81 +14,37 @@ to a Vcs file :
 - keep a cache in a MLDBM file so that a history retrieve is not necessary
   each time you start the tool.
 
+Suggested DSLI line:
+Puppet::VcsTools::File bdpO  GUI for VCS file management tools  DDUMONT
 
-Note that only HP HMS is currently implemented. HMS is part of the HP
-Softbench CM product.  If this address is reachable, you can get more
-info on http://www.hp.com/esy/go/softbench.html
 
-But the following VcsTools classes are generic and can be re-used as
-is for extending VcsTools to RCS, PRCS or other Vcs systems:
+Note that only HP HMS and RCS are currently implemented. HMS is part
+of the HP Softbench CM product.  If this address is reachable, you can
+get more info on http://www.hp.com/esy/go/softbench.html
 
-- GraphWidget : this Tk composite widget is a Tk::Multi widget featuring a 
-  Canvas and a List box.
-- GraphMgr: A class using GraphWidget. This class perform the drawing of 
-  revision nodes (the rectangle with the text inside) and of the arrows 
-  between revision.
-- Version: A class holding the relevant information for each revision. This
-  class knows how to find a common ancestor and how to edit the history log.
-  It will also pilot the drawing of the revision tree.
-- HistEdit: A Tk Widget dedicated to the history edition.
-- History: A class containing all the Version objects and the GraphMgr. It 
-  manages the different versions and will create the Version object only when
-  necessary.
-- File: This class contains the History and access all other classes which 
-  represent the "real" world (Vcs interface, file system interface, 
-  process interface). Note that the class names representing the "real world"
-  are passed to the constructor of File. So you can re-define your own
-  "real world" class and use them within File without modifying the File class.
-
-Note that most of these classes inherit the Puppet::Any module.
-
-Other less generic classes are :
-
-- FileAgent: Class to perform basic file functions such as remove, chmod...
-- HmsAgent: Class which defined the command needed to perform operation
-  on the HMS database. (such fci, fco ...). Note that only this class should
-  be re-written on order to provide an access to other Vcs tools such as RCS.  
-- DataSpec::HpTnd: This class knows how to retrieve relevant data from the 
-  HMS log. It also feature some rules specific to TND division here in 
-  HP Grenoble. You may choose to use it as is or create your own DataSpec
-  class for your needs.
-- Process: Tiny module which runs processes (currently in blocking mode)
-  and perform a call-back with the result of the process. 
-
-Support for asynchronous opreation: The File, FileAgent, HmsAgent and
-Process classes are written in asynchronous mode.  I.e. all their
-methods will invoke call-back functions to get results back to the
-caller. Granted, the feature is not really usefull right now, since
-the process are executed in a blocking mode. But in the future we may
-have a new process class which may fork its process or invoke them on
-a remote machine (using RPC::Simple). In this case, the aysnchronous
-mode will be necessary.
   
 This module also contains an executable perl program named hmsWork. This
-exec file is the user callable program to actually monitor the HMS file and
-it uses the FileAgent HmsAgent HpTnd and Process as "real world" classes.
+exec file is the user callable program to actually monitor the HMS file.
 
-Note that I will not provided the interface to RCS or other Vcs systems. 
-I've tried to make VcsTools easily extensible so that users will be able to
-adapt to their needs (and hopefully contribute their modules to the 
-community).
+I've also provided a rcsWork program to manage RCS files.
+
 
 I'd like people who actually use this module for their application to
 drop me a short note about what they're using this module for. 
 
 
-This module was written with perl5.004. 
+This module was written with perl5.005 and Tk800.015. 
 
 See the embedded documentation in the module for more details.
 
 Comments and suggestions are always welcome.
 
-Note that this module is in alpha state. Its interface may change (but
+Note that this module is in beta state. Its interface may change (but
 I hope not).
 
 Legal mumbo jumbo:
 
- Copyright (c) 1998 Dominique Dumont. All rights reserved.
+ Copyright (c) 1998-1999 Dominique Dumont. All rights reserved.
  This program is free software; you can redistribute it and/or
  modify it under the same terms as Perl itself.
  THIS PACKAGE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR

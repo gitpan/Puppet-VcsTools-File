@@ -4,11 +4,11 @@ use ExtUtils::MakeMaker;
 WriteMakefile
   (
    'NAME'	   => 'Puppet-VcsTools-File',
-   'VERSION' => '1.001',
+   'VERSION' => '1.002',
    'EXE_FILES' => [qw/hmsWork rcsWork/],
    'dist' => {COMPRESS=>'gzip -9f', SUFFIX => 'gz'},
    ($] >= 5.005 ?
-    (ABSTRACT   => 'VCS management tools GUI',
+    (ABSTRACT   => 'GUI for VCS management tools',
      AUTHOR     => 'Dominique Dumont (domi@barrayar.grenoble.hp.com)') : ()),
    'PREREQ_PM' =>
    {
@@ -18,7 +18,7 @@ WriteMakefile
     'MLDBM' => 0,
     'DB_File' =>0,
     'String::ShellQuote' => 0,
-    'VcsTools::File' => '1.002',
+    'VcsTools::File' => '1.004',
     'Puppet::VcsTools::History' => '1.002'
    }
   );

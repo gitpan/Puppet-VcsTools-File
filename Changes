@@ -1,3 +1,8 @@
+v 1.002 1999-08-20  Dominique Dumont  <domi@barrayar.grenoble.hp.com>
+
+	* lib/Puppet/VcsTools/File.pm (new): 
+	- adapted for File/Source split on VcsTools::File.
+
 v0.01: Fri Aug 21 12:48:48  1998
 	- original version
 

@@ -1,0 +1,11 @@
+Changes
+MANIFEST
+Makefile.PL
+README
+hmsWork
+lib/Puppet/VcsTools/File.pm
+lib/Puppet/VcsTools/LogEdit.pm
+rcsWork
+t/file.t
+t/hashedit.t
+t/rcs_file.t

@@ -1,0 +1,194 @@
+#!/opt/perl5/bin/perl
+
+use Tk ;
+use ExtUtils::testlib;
+use Puppet::VcsTools::File;
+use Puppet::VcsTools::LogEdit;
+use VcsTools::LogParser ;
+use VcsTools::DataSpec::HpTnd qw($description readHook);
+use Getopt::Long ;
+require Tk::ErrorDialog; 
+use Fcntl ;
+use MLDBM qw(DB_File);
+
+use strict ;
+
+my @allNames=() ;
+my ($hmsBase,$hmsDir) ;
+
+use vars qw($VERSION);
+$VERSION = sprintf "%d.%03d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
+
+my $base = 'SLEE' ;
+my $hmsHost = 'hptnofs' ;
+
+GetOptions ('name=s@' => \@allNames, 
+            'base=s' => \$hmsBase,
+            'host=s' => \$hmsHost,
+            'hmsDir=s' => \$hmsDir)
+  || die "GetOptions failed\n";
+
+
+@allNames = @ARGV unless scalar @allNames>0 ;
+
+my $home = $ENV{'HOME'} ;
+my $dbDir = $home.'/.hmsWork/' ;
+unless (-d $dbDir)
+  {
+    print "May I create the $dbDir directory ? (y/n)\n";
+    my $rep = <STDIN> ;
+    if ($rep =~ /^y/i)
+      {
+        mkdir ($dbDir,0755) or die "Create $dbDir failed\n";
+      }
+    else
+      {
+        $dbDir = $ENV{'PWD'};
+      }
+  }
+
+my $version = '1.1';
+my $keyV = '%version%'; 
+
+my $ds = new VcsTools::LogParser
+  (
+   description => $description,
+   readHook => \&readHook
+  ) ;
+
+$hmsDir = '' if (defined $hmsBase and not defined $hmsDir ) ;
+
+my $mw = MainWindow-> new ;
+
+my $he = $mw->LogEditor( 'format' => $ds) ;
+
+my $create = sub 
+  {
+    my $name = shift ;
+    my ($b,$d,$n) ;
+    if ($name =~ m!/!)
+      {
+        ($b,$d,$n) = ( $name =~ m!/([\w\-\.]+)/([\w\-\./]+)/([\w\-\./]+)! ) or
+        ($b,$n) = ($name =~ m!/([\w\-\.]+)/([\w\-\./]+)! );
+        print "got hms like spec\n";
+      }
+
+    $b = $hmsBase unless defined $b;
+    $d = $d || $hmsDir || '';
+    $n = $name unless defined $n;
+    print "base $b, dir $d, name $n \n";
+
+    my $file = defined $b ? $b.'/'.$d : $ENV{'PWD'} ;
+    $file .= '/'. $n ;
+    $file =~ s!/+!?!g;
+
+    my %dbhash;
+    tie %dbhash,  'MLDBM', $dbDir.$file , O_CREAT|O_RDWR, 0640 or die $! ;
+    
+    if (not defined $dbhash{$keyV} or $dbhash{$keyV} ne $version)
+      {
+        print "Performing cleanup of old local database\n";
+        my @keys = keys %dbhash ;
+        map (delete $dbhash{$_}, @keys) ; # mega cleanup
+        $dbhash{$keyV}=$version ;
+      }
+
+    return new Puppet::VcsTools::File 
+      (
+       storageArgs =>
+       {
+        dbHash => \%dbhash,
+        keyRoot => ''
+       },
+       vcsClass => 'VcsTools::HmsAgent',
+       vcsArgs => 
+       {
+        hmsHost => $hmsHost,
+        hmsDir => $d  ,
+        hmsBase => $b 
+       },
+       name => $n ,
+       workDir => $ENV{'PWD'},
+       dataScanner => $ds ,
+       logEditor => $he,
+       'topTk' => $mw
+      );
+  };
+
+if (scalar @allNames > 1)
+  {
+    # several files to work on
+    require Tk::TFrame ;
+    my $f = $mw -> TFrame
+      (
+       -label => [text => 'hmsWork main window'],
+       -borderwidth => 2,
+       -relief => 'groove'
+      ); 
+    $f -> pack( -expand => 1,-fill => 'both');
+
+    my $l = $f->Scrolled(qw/Listbox -scrollbars osoe/);
+    $l-> pack( -expand => 1, -fill => 'both');
+
+    map($l->insert('end',$_),@allNames) ;
+
+    $f->Button(text => 'quit', command => sub {$mw->destroy;}) ->
+      pack(qw/fill x/);
+
+    $l->bind
+      (
+       '<Double-1>' => sub 
+       {
+         my $item = shift ;
+         my $name = $item->get ('active') ;
+         $create->($name)-> display();
+       }
+      ) ;
+
+  }
+else
+  {
+    $mw->withdraw ;
+  }
+
+if (scalar @allNames == 1)
+  {
+    $create->($allNames[0])-> display( master =>1);
+  }
+
+MainLoop ; # Tk's
+
+__END__
+
+=head1 NAME
+
+hmsWork - HMS file manager
+
+=head1 SYNOPSIS
+
+ # fully qualified
+ hmsWork -base SLEE [-hmsDir code/toto] -host hptnofs -name titi.c -name foo.h
+  
+ # or
+ hmsWork -base SLEE [-hmsDir code/toto] -host hptnofs titi.c foo.h bar.c
+
+ # if you trust your .fmrc file
+ hmsWork titi.c foo.h bar.c
+
+=head1 DESCRIPTION
+
+Launch a Tk application to manage your HMS file
+
+=head1 AUTHOR
+
+Dominique Dumont    Dominique_Dumont@grenoble.hp.com
+
+Copyright (c) 1998-1999 Dominique Dumont. All rights reserved.  This
+program is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
+
+=head1 SEE ALSO
+
+perl(1), L<Puppet::VcsTools::File>,  L<Puppet::VcsTools::History>
+
+=cut

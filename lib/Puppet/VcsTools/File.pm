@@ -9,7 +9,7 @@ use vars qw($VERSION);
 
 use AutoLoader qw/AUTOLOAD/ ;
 
-$VERSION = sprintf "%d.%03d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
+$VERSION = sprintf "%d.%03d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
 
 
 ## Generic part
@@ -18,6 +18,7 @@ sub new
   {
     my $type = shift ;
     my %args = @_ ;
+    local $_;
 
     my $self = {};
 
@@ -29,24 +30,50 @@ sub new
        @_
       ) ;
 
-    my $storeArgs = $self->{storageArgs} = $args{storageArgs} ;
+    if (defined $args{storageArgs})
+      {
+        # transition code, should be removed sooner or later
+        carp "new $type $args{name}: storageArgs is deprecated";
+        $self->{storageArgs}=$args{storageArgs};
+      }
+    elsif (defined $args{storage})
+      {
+        # we will keep only this parameter
+        $self->{storage}= $args{storage};
+      }
+    else
+      {
+        croak ("No storage arg passed to $type::$self->{name}\n")
+      }
        
+    # this will also be deprecated sooner or later
     $self->{usage} = $args{usage} || 'File' ;
    
+    # vcs agent
+    if (defined $args{vcsClass})
+      {
+        $self->{vcsClass}=$args{vcsClass};
+        $self->{vcsArgs}=$args{vcsArgs};
+      }
+    elsif (defined  $args{vcsAgent})
+      {
+        $self->{vcsAgent}=$args{vcsAgent};
+      }
+    else
+      {
+        croak ("No vcsAgent passed to $type::$self->{name}\n")
+      }
+
     # mandatory parameter
-    foreach (qw/name dataScanner logEditor vcsClass topTk 
-             workDir/)
+    foreach (qw/name dataScanner logEditor topTk workDir/)
       {
         die "No $_ passed to $type::$self->{name}\n" unless 
           defined $args{$_};
         $self->{$_} = delete $args{$_} ;
       }
     
-    croak ("No storageArgs defined for VcsTools::Version $self->{name}\n")
-      unless defined $storeArgs;
-    
     # optional parameter
-    foreach (qw/vcsArgs test/)
+    foreach (qw/test/)
       {
         $self->{$_} = delete $args{$_} ;
       }
@@ -131,7 +158,7 @@ log a each version of a file, if you want to modify it.
 
 =head1 CAVEATS
 
-The file B<must> contain the C<$Revision: 1.2 $> VCS keyword.
+The file B<must> contain the C<$Revision: 1.3 $> VCS keyword.
 
 =head1 WIDGET USAGE
 
@@ -551,6 +578,11 @@ sub createHistory
   {
     my $self = shift ;
 
+    # handles legacy code 
+    my @store = defined $self->{storageArgs} ? 
+      (storageArgs => $self->{storageArgs}) :
+      (storage => $self->{storage}) ;
+
     if (not defined $self->{body}->getContent('history'))
       {
         require Puppet::VcsTools::History ;
@@ -558,17 +590,14 @@ sub createHistory
         my $h = new Puppet::VcsTools::History 
           (
            usage => $self->{usage},
-           storageArgs => $self->{storageArgs},
+           @store,
            topTk => $self->{topTk},
-           dbHash => $self->{dbHash},
-           keyRoot => $self->{keyRoot},
            how => $how,
            editor => $self->{logEditor},
            trace => $self->{trace},
            name => 'history',
            title => $self->{name},
-           dataScanner => $self->{dataScanner} ,
-           manager => $self 
+           dataScanner => $self->{dataScanner}
           );
         $self->{body}->acquire(body => $h->body());
       }

@@ -13,9 +13,12 @@ BEGIN
   }
 END {print "not ok 1\n" unless $loaded;}
 use Tk ;
+use Cwd ;
 use ExtUtils::testlib;
 use Puppet::VcsTools::File;
 use Puppet::VcsTools::LogEdit;
+use VcsTools::RcsAgent ;
+use Puppet::Storage ;
 use VcsTools::LogParser ;
 use VcsTools::DataSpec::Rcs qw($description readHook);
 require Tk::ErrorDialog; 
@@ -69,21 +72,26 @@ $mw->withdraw ;
 my $he = $mw->LogEditor( 'format' => $ds) ;
 print "ok ",$idx++,"\n";
 
+Puppet::Storage->dbHash(\%dbhash);
+Puppet::Storage->keyRoot('root');
+VcsTools::RcsAgent->trace($trace);
+
+my $agent = VcsTools::RcsAgent->new
+  (
+   name => $tfile,
+   workDir => cwd()
+  );
 
 my $file = new Puppet::VcsTools::File 
   (
-   storageArgs => 
-   {
-    dbHash => \%dbhash,
-    keyRoot => 'root'
-   },
-   vcsClass => 'VcsTools::RcsAgent',
+   storage=> new Puppet::Storage(name => $tfile) ,
+   vcsAgent => $agent,
    name => $tfile,
-   workDir => $ENV{'PWD'},
+   workDir => cwd(),
    dataScanner => $ds,
    logEditor => $he,
    trace => $trace,
-   how => 'print',
+   how => $trace ? 'print' : undef ,
    'topTk' => $mw
   );
 

@@ -26,9 +26,12 @@ BEGIN
   }
 END {print "not ok 1\n" unless $loaded;}
 use Tk ;
+use Cwd ;
 use ExtUtils::testlib;
 use Puppet::VcsTools::File;
 use Puppet::VcsTools::LogEdit;
+use VcsTools::HmsAgent ;
+use Puppet::Storage ;
 use VcsTools::LogParser ;
 use VcsTools::DataSpec::HpTnd qw($description readHook);
 require Tk::ErrorDialog; 
@@ -75,25 +78,28 @@ $mw->withdraw ;
 my $he = $mw->LogEditor( 'format' => $ds) ;
 print "ok ",$idx++,"\n";
 
+Puppet::Storage->dbHash(\%dbhash);
+Puppet::Storage->keyRoot('root');
+
+VcsTools::HmsAgent->hmsBase('test_integ');
+VcsTools::HmsAgent->hmsHost('hptnofs');
+VcsTools::HmsAgent->trace($trace);
+
+my $agent = VcsTools::HmsAgent->new
+  (
+   name => $tfile,
+   workDir => cwd()
+  );
 
 my $fileO = new Puppet::VcsTools::File 
   (
-   storageArgs => 
-   {
-    dbHash => \%dbhash,
-    keyRoot => 'root'
-   },
-   vcsClass => 'VcsTools::HmsAgent',
-   vcsArgs => 
-   {
-    hmsHost => 'hptnofs',
-    hmsBase => 'test_integ'
-    },
+   storage=> new Puppet::Storage(name => $tfile) ,
+   vcsAgent => $agent,
    name => $tfile,
-   workDir => $ENV{'PWD'},
+   workDir => cwd(),
    dataScanner => $ds,
    logEditor => $he,
-   how => 'print',
+   how => $trace ? 'print' : undef ,
    'topTk' => $mw
   );
 

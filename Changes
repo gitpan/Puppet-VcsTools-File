@@ -1,4 +1,11 @@
-v 1.002 1999-08-20  Dominique Dumont  <domi@barrayar.grenoble.hp.com>
+v1.003 1999-10-11  Dominique Dumont  <domi@barrayar.grenoble.hp.com>
+
+	* lib/Puppet/VcsTools/File.pm: 
+	- modified call to History, HmsAgent constructor to use the new
+	translucent attributes 
+	- All xxxArgs are deprecated.
+
+v1.002 1999-08-20  Dominique Dumont  <domi@barrayar.grenoble.hp.com>
 
 	* lib/Puppet/VcsTools/File.pm (new): 
 	- adapted for File/Source split on VcsTools::File.

@@ -1,9 +1,12 @@
 #!/opt/perl5/bin/perl
   
 use Tk ;
+use Cwd ;
 use ExtUtils::testlib;
 use Puppet::VcsTools::File;
 use Puppet::VcsTools::LogEdit;
+use VcsTools::HmsAgent ;
+use Puppet::Storage ;
 use VcsTools::LogParser ;
 use VcsTools::DataSpec::HpTnd qw($description readHook);
 use Getopt::Long ;
@@ -56,6 +59,9 @@ my $ds = new VcsTools::LogParser
    readHook => \&readHook
   ) ;
 
+VcsTools::HmsAgent->hmsHost($hmsHost);
+Puppet::Storage->keyRoot('');
+
 $hmsDir = '' if (defined $hmsBase and not defined $hmsDir ) ;
 
 my $mw = MainWindow-> new ;
@@ -93,22 +99,22 @@ my $create = sub
         $dbhash{$keyV}=$version ;
       }
 
+    my $store = new Puppet::Storage(name => $n,  dbHash => \%dbhash) ;
+
+    my $agent = VcsTools::HmsAgent->new
+      (
+       name => $n,
+       hmsDir => $d  ,
+       hmsBase => $b ,
+       workDir => cwd()
+      );
+
     return new Puppet::VcsTools::File 
       (
-       storageArgs =>
-       {
-        dbHash => \%dbhash,
-        keyRoot => ''
-       },
-       vcsClass => 'VcsTools::HmsAgent',
-       vcsArgs => 
-       {
-        hmsHost => $hmsHost,
-        hmsDir => $d  ,
-        hmsBase => $b 
-       },
+       storage=> $store,
+       vcsAgent => $agent,
        name => $n ,
-       workDir => $ENV{'PWD'},
+       workDir => cwd(),
        dataScanner => $ds ,
        logEditor => $he,
        'topTk' => $mw

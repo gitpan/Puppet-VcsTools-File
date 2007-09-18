@@ -9,3 +9,4 @@ rcsWork
 t/file.t
 t/hashedit.t
 t/rcs_file.t
+META.yml                                 Module meta-data (added by MakeMaker)

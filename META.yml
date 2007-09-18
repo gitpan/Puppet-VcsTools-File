@@ -1,0 +1,18 @@
+# http://module-build.sourceforge.net/META-spec.html
+#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
+name:         Puppet-VcsTools-File
+version:      1.004
+version_from: 
+installdirs:  site
+requires:
+    DB_File:                       0
+    MLDBM:                         0
+    Puppet::Show:                  1.003
+    Puppet::VcsTools::History:     1.005
+    String::ShellQuote:            0
+    Tk:                            0
+    Tk::ROText:                    0
+    VcsTools::File:                1.005
+
+distribution_type: module
+generated_by: ExtUtils::MakeMaker version 6.30_01

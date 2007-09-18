@@ -1,3 +1,8 @@
+v1.004 2007-09-18 Dominique Dumont
+       * Dummy revision. Somehow v1.003 was removed from CPAN, so I've created
+         this new version to provide this module again. No other change 
+         was made.
+
 v1.003 1999-10-11  Dominique Dumont  <domi@barrayar.grenoble.hp.com>
 
 	* lib/Puppet/VcsTools/File.pm: 

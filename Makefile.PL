@@ -4,7 +4,7 @@ use ExtUtils::MakeMaker;
 WriteMakefile
   (
    'NAME'	   => 'Puppet-VcsTools-File',
-   'VERSION' => '1.003',
+   'VERSION' => '1.004',
    'EXE_FILES' => [qw/hmsWork rcsWork/],
    'dist' => {COMPRESS=>'gzip -9f', SUFFIX => 'gz'},
    ($] >= 5.005 ?
